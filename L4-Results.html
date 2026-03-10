@@ -271,7 +271,16 @@
             text-transform: uppercase;
         }
     </style>
+
+    <!-- Supabase Initialization -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://wukzubjnsoulvjeotfzy.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1a3p1Ympuc291bHZqZW90Znp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NDgzNzYsImV4cCI6MjA4MjAyNDM3Nn0.vCKQSVn5i0pvK3cdbyJlIRzqWlmPt_kjQsVBxskZ3X0';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
 </head>
+
 
 <body>
 
@@ -358,13 +367,17 @@
     <script>
         let allResults = [];
 
-        function loadData() {
-            const data = localStorage.getItem('north_castle_l4_results');
-            if (data) {
-                allResults = JSON.parse(data);
-                // Sort by newest first
-                allResults.sort((a, b) => b.id - a.id);
-            } else {
+        async function loadData() {
+            try {
+                const { data, error } = await supabase
+                    .from('l4_results')
+                    .select('*')
+                    .order('id', { ascending: false });
+                
+                if (error) throw error;
+                allResults = data || [];
+            } catch (err) {
+                console.error("Error loading data from Supabase:", err);
                 allResults = [];
             }
         }
@@ -376,8 +389,8 @@
             return 'score-poor';
         }
 
-        function renderTable() {
-            loadData();
+        async function renderTable() {
+            await loadData();
             const tbody = document.getElementById('tableBody');
             const noData = document.getElementById('noDataMsg');
             const branchFilter = document.getElementById('filterBranch').value;
